@@ -13,7 +13,7 @@
 - Some LinkedIn profile URLs (This you will need to manually search for,
 
 ## Instructions
-
+1. In the **credentials.txt** file enter the username and password of the linkedin account. The username and password are separated by a colon. Example: usernameEmail:password
 2. In the same folder, find the **data.txt** file. This file is used to specify the companies and LinkedIn URLs to be crawled. Follow the structure outlined below:
    
    - Start with a number on the first line, which represents the company index you are looking at.
