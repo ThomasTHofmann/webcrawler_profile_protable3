@@ -7,18 +7,17 @@ import time
 import csv
 from random import randint
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
+
 from bs4 import BeautifulSoup
 
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.remote_connection import LOGGER
+from selenium.webdriver.common.by import By
 
 import sys
 import os
 import warnings
-from os.path import dirname, join
 
-current_dir = dirname(__file__)
 error_count = 0
 
 warnings.filterwarnings("ignore")
@@ -27,18 +26,16 @@ LOGGER.setLevel("ERROR")
 
 #path = '' so that the chrome driver is saved in the project folder and not locally in C:\Users\Admin\.wdm\drivers\chromedriver\win32\113.0.5672.63 for example
 #driver = webdriver.Chrome(ChromeDriverManager(path = '').install())
+
+
 service = Service()
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(service=service, options=options)
 #maximize windowl, as there were some issues if the window was smaller.
 driver.maximize_window()
 
-
-file_path = join(current_dir, "./credentials.txt")
-with open(file_path, 'r') as f:
-    credentials = f.read().strip().split(":")
-#with open("credentials.txt", "r") as file:
-#    credentials = file.read().strip().split(":")
+with open("credentials.txt", "r") as file:
+    credentials = file.read().strip().split(":")
 
 linkedin_username = credentials[0]
 linkedin_password = credentials[1]
@@ -50,7 +47,7 @@ linkedin_password = credentials[1]
 driver.get('https://www.linkedin.com/login')
 time.sleep(randint(10,30))
 #Enter login info:
-username = driver.find_element(By.ID,'username')
+username = driver.find_element(By.ID, 'username')
 username.send_keys(linkedin_username)
 
 password = driver.find_element(By.ID,'password')
@@ -62,8 +59,7 @@ time.sleep(randint(20,30))
 names = []
 company = None
 profile_links = []
-data_path = join(current_dir, "./data.txt")
-with open(data_path, "r") as file:
+with open("data.txt", "r") as file:
     lines = file.readlines()
     line_index = 0
     while line_index < len(lines):
@@ -84,9 +80,7 @@ with open(data_path, "r") as file:
             #headings for the csv file:
             headings = ["Profile URL", "Name", "Company Index", "Title", "About", "Experience", "Education", "Skills"]
             #open csv file: this just writes the headings. New rows get edited further down
-            LinkedIn_Data_path = join(current_dir, "LinkedIn_Data/")
-            with open(LinkedIn_Data_path + company + ".csv", "w+") as f:
-            #with open("LinkedIn_Data/" + company + '.csv', 'w') as f:
+            with open("LinkedIn_Data/" + company + '.csv', 'w') as f:
                 #create csv writer
                 writer = csv.writer(f)
                 writer.writerow(headings)
@@ -106,17 +100,16 @@ with open(data_path, "r") as file:
                 #education_subject = []
                 skills = []
 
-                section_lists = driver.find_elements(By.CSS_SELECTOR, '.artdeco-card.ember-view.relative.break-words.pb3.mt2 ')
-                
+                section_lists = driver.find_elements(By.CSS_SELECTOR,'.artdeco-card.pv-profile-card.break-words.mt2')
                 #EXPERIENCE
                 for section in section_lists:
                     #if this section contains the id 'experience' continue
-                    if section.find_elements(By.ID, 'experience'):
+                    if section.find_elements(By.ID,'experience'):
                         #if a show more button exists continue and click on the link, then scrape the new page that opened and then go back to the previous page.
                         #if section.find_elements_by_css_selector('.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--3.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
-                        if section.find_elements(By.CSS_SELECTOR, '.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
+                        if section.find_elements(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
                             #section.find_element_by_css_selector('.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--3.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
-                            section.find_element(By.CSS_SELECTOR, '.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
+                            section.find_element(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
                             time.sleep(randint(30,60))
                             #Scroll all the way down
                             last_height = driver.execute_script("return document.body.scrollHeight")
@@ -131,14 +124,14 @@ with open(data_path, "r") as file:
                                     break
                                 last_height = new_height
                             #get new driver page for the new page that opened after the click
-                            lists = driver.find_element(By.CSS_SELECTOR, '.pvs-list ')
+                            lists = driver.find_element(By.CSS_SELECTOR,'.pvs-list__container ')
                             #parts = lists.find_elements_by_tag_name('li')
                             #parts = lists.find_elements_by_css_selector('.pvs-list__paged-list-item.artdeco-list__item.pvs-list__item--line-separated ')
-                            parts = lists.find_elements(By.CSS_SELECTOR, '.pvs-list__paged-list-item.artdeco-list__item.pvs-list__item--line-separated.pvs-list__item--one-column')
+                            parts = lists.find_elements(By.CSS_SELECTOR,'.pvs-list__paged-list-item.artdeco-list__item.pvs-list__item--line-separated.pvs-list__item--one-column')
                             for part in parts:
                                 #first part is the experience title
-                                if part.find_elements(By.CSS_SELECTOR, '.visually-hidden'):
-                                    p = part.find_elements(By.CSS_SELECTOR, '.visually-hidden')
+                                if part.find_elements(By.CSS_SELECTOR,'.visually-hidden'):
+                                    p = part.find_elements(By.CSS_SELECTOR,'.visually-hidden')
                                     for part0 in p:
                                         experience_title.append(part0.get_attribute('innerText'))
                             
@@ -156,13 +149,13 @@ with open(data_path, "r") as file:
                             #check if there is a list is empty in this section
                             #if section.find_elements_by_css_selector('.pvs-list.ph5.display-flex.flex-row.flex-wrap'):
                                 #section.find_elements_by_css_selector('.pvs-list.ph5.display-flex.flex-row.flex-wrap')
-                            if section.find_elements(By.CSS_SELECTOR, '.pvs-list'):
-                                section.find_elements(By.CSS_SELECTOR,'.pvs-list')
+                            if section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1'):
+                                section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1')
                                 #items = section.find_elements_by_tag_name('li')
-                                items = section.find_elements(By.CSS_SELECTOR, '.artdeco-list__item.pwNsrlalEjchUAdhgPCerhjOTYygXsyUEuGuR.moWYtnWRYmIrHjbSBioQuOQqDbomKeKKkdo')
+                                items = section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1')
                                 for item in items:
-                                    if item.find_elements(By.CSS_SELECTOR, '.visually-hidden'):
-                                        i = item.find_elements(By.CSS_SELECTOR, '.visually-hidden')                            
+                                    if item.find_elements(By.CSS_SELECTOR,'.visually-hidden'):
+                                        i = item.find_elements(By.CSS_SELECTOR,'.visually-hidden')                            
                                         for item0 in i:
                                             experience_title.append(item0.get_attribute('innerText'))       
                                             #print("***************************************************")
@@ -173,13 +166,12 @@ with open(data_path, "r") as file:
                             break
                 print(experience_title)
                 #create a new section_lists since there is a possibility that the page was reloaded from the previous code
-                section_lists = driver.find_elements(By.CSS_SELECTOR, '.artdeco-card.ember-view.relative.break-words.pb3.mt2 ')
-                
+                section_lists = driver.find_elements(By.CSS_SELECTOR,'.artdeco-card.pv-profile-card.break-words.mt2')
                 #EDUCATION
                 for section in section_lists:
                     if section.find_elements(By.ID,'education'):
-                        if section.find_elements(By.CSS_SELECTOR, '.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
-                            section.find_element(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
+                        if section.find_elements(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
+                            section.find_elements(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
                             time.sleep(randint(30,60))
                             #Scroll all the way down
                             last_height = driver.execute_script("return document.body.scrollHeight")
@@ -193,7 +185,7 @@ with open(data_path, "r") as file:
                                 if new_height == last_height:
                                     break
                                 last_height = new_height
-                            lists = driver.find_element(By.CSS_SELECTOR,'.pvs-list ')
+                            lists = driver.find_element(By.CSS_SELECTOR,'.pvs-list__container')
                             #parts = lists.find_elements_by_tag_name('li')
                             parts = lists.find_elements(By.CSS_SELECTOR,'.pvs-list__paged-list-item.artdeco-list__item.pvs-list__item--line-separated.pvs-list__item--one-column')
                             for part in parts:
@@ -212,11 +204,10 @@ with open(data_path, "r") as file:
                             #no show more button so just scrape what is already there
                             print("scrape educations from profile")
                             #check if there is a list is empty in this section
-                            if section.find_elements(By.CSS_SELECTOR,'.pvs-list '):
-                                section.find_elements(By.CSS_SELECTOR,'.pvs-list ')
+                            if section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1'):
+                                section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1')
                                 #items = section.find_elements_by_tag_name('li')
-                                #items = section.find_elements(By.CSS_SELECTOR,'.artdeco-list__item.pvs-list__item--line-separated.pvs-list__item--one-column')
-                                items = section.find_elements(By.CSS_SELECTOR,'.artdeco-list__item.pwNsrlalEjchUAdhgPCerhjOTYygXsyUEuGuR.moWYtnWRYmIrHjbSBioQuOQqDbomKeKKkdo')
+                                items = section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1')
                                 for item in items:
                                     if item.find_elements(By.CSS_SELECTOR,'.visually-hidden'):
                                         i = item.find_elements(By.CSS_SELECTOR,'.visually-hidden')
@@ -227,53 +218,54 @@ with open(data_path, "r") as file:
 
                             break
                 print(education_school)
-                section_lists = driver.find_elements(By.CSS_SELECTOR,'.artdeco-card.ember-view.relative.break-words.pb3.mt2 ')
-                
+                section_lists = driver.find_elements(By.CSS_SELECTOR,'.artdeco-card.pv-profile-card.break-words.mt2')
                 #SKILLS
                 for section in section_lists:
                     if section.find_elements(By.ID,'skills'):
-                        if section.find_elements(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
-                            #Extremely rare case where it cant click on skills for profiles like "https://www.linkedin.com/in/fvdmaele/" temporary fix is use try and continue. this skips the skills section
-                            try:
-                                section.find_element(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
-                            except:
-                                error_count += 1
-                                continue
-                            time.sleep(randint(30,60))
-                            #Scroll all the way down
-                            last_height = driver.execute_script("return document.body.scrollHeight")
-                            while True:
-                                #Scroll to bottom
-                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                                # Wait to load page
-                                time.sleep(3)
-                                # Calculate new scroll height and compare with last scroll height
-                                new_height = driver.execute_script("return document.body.scrollHeight")
-                                if new_height == last_height:
-                                    break
-                                last_height = new_height
-                            lists = driver.find_element(By.CSS_SELECTOR,'.pvs-list ')
-                            #this part is different than the previous code because the tag name 'li' is not only used for the name of the skill but also the endorsement. So used locate by css_selector instead.
-                            parts = lists.find_elements(By.CSS_SELECTOR,'.mr1.hoverable-link-text.t-bold')
-                            for part in parts:
-                                if part.find_element(By.CSS_SELECTOR,'.visually-hidden'):
-                                    part0 = part.find_element(By.CSS_SELECTOR,'.visually-hidden')
-                                    skills.append(part0.get_attribute('innerText'))
-                                else:
-                                    skills.append('NULL')
+                        try:
+                            if section.find_element(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid'):
+                                #Extremely rare case where it cant click on skills for profiles like "https://www.linkedin.com/in/fvdmaele/" temporary fix is use try and continue. this skips the skills section
+                                try:
+                                    section.find_element(By.CSS_SELECTOR,'.optional-action-target-wrapper.artdeco-button.artdeco-button--tertiary.artdeco-button--standard.artdeco-button--2.artdeco-button--muted.inline-flex.justify-center.full-width.align-items-center.artdeco-button--fluid').click()
+                                except:
+                                    error_count += 1
+                                    continue
+                                time.sleep(randint(30,60))
+                                #Scroll all the way down
+                                last_height = driver.execute_script("return document.body.scrollHeight")
+                                while True:
+                                    #Scroll to bottom
+                                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                                    # Wait to load page
+                                    time.sleep(3)
+                                    # Calculate new scroll height and compare with last scroll height
+                                    new_height = driver.execute_script("return document.body.scrollHeight")
+                                    if new_height == last_height:
+                                        break
+                                    last_height = new_height
+                                lists = driver.find_element(By.CSS_SELECTOR,'.pvs-list__container')
+                                #this part is different than the previous code because the tag name 'li' is not only used for the name of the skill but also the endorsement. So used locate by css_selector instead.
+                                parts = lists.find_elements(By.CSS_SELECTOR,'.display-flex.align-items-center.mr1.hoverable-link-text.t-bold')
+                                for part in parts:
+                                    if part.find_elements(By.CSS_SELECTOR,'.visually-hidden'):
+                                        part0 = part.find_element(By.CSS_SELECTOR,'.visually-hidden')
+                                        skills.append(part0.get_attribute('innerText'))
+                                    else:
+                                        skills.append('NULL')
 
-                            print("scrape skills from site")
-                            driver.execute_script("window.history.go(-1)")
-                            time.sleep(randint(30,60))
-                            break
-                        else:
+                                print("scrape skills from site")
+                                driver.execute_script("window.history.go(-1)")
+                                time.sleep(randint(30,60))
+                                break
+                        except:
+                        #else:
                             #no show more button so just scrape what is already there
                             print("scrape skills from profile")
                             #check if the list is empty in this section
                             #if section.find_elements_by_css_selector('.pvs-list.ph5.display-flex.flex-row.flex-wrap'):
                                 #section.find_elements_by_css_selector('.pvs-list.ph5.display-flex.flex-row.flex-wrap')
-                            if section.find_elements(By.CSS_SELECTOR,'.pvs-list '):
-                                section.find_elements(By.CSS_SELECTOR,'.pvs-list ')
+                            if section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1'):
+                                section.find_elements(By.CSS_SELECTOR,'.display-flex.flex-column.align-self-center.flex-grow-1')
                                 items = section.find_elements(By.CSS_SELECTOR,'.display-flex.align-items-center.mr1.hoverable-link-text.t-bold')
                                 for item in items:
                                     #check if the item exists
@@ -286,7 +278,6 @@ with open(data_path, "r") as file:
                                         skills.append('NULL')
                             break
                 print(skills)
-                
                 #BeautifulSoup part:
                 src = driver.page_source
                 soup = BeautifulSoup(src, 'lxml')
@@ -296,7 +287,7 @@ with open(data_path, "r") as file:
 
                 #name
                 try:
-                    name = name_path.find('h1', {'class': 'text-heading-xlarge inline t-24 v-align-middle break-words'}).get_text().strip()
+                    name = name_path.find('h1', {'class': 'XtnqdVTIVNWsbnBJDQhVakQTbSAaOKCkEMdbrk inline t-24 v-align-middle break-words'}).get_text().strip()
                 except:
                     name = 'NULL'
 
@@ -321,8 +312,7 @@ with open(data_path, "r") as file:
                 c = ', '.join(str(x) for x in skills)
                 save_csv_row = [profile, name, company, title, about, a, b, c]
 
-
-                with open(LinkedIn_Data_path + company + '.csv', 'a', encoding='utf-8', newline='') as f:
+                with open('LinkedIn_Data/' + company + '.csv', 'a', encoding='utf-8', newline='') as f:
                     #create csv writer
                     writer = csv.writer(f)
                     writer.writerow(save_csv_row)
